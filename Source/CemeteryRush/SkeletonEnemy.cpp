@@ -36,6 +36,12 @@ void ASkeletonEnemy::BeginPlay()
 	Health = MaxHealth;
 
 	// Setup collisions
+	CombatSphereCollision->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonEnemy::OnCombatSphereBeginOverlap);
+	CombatSphereCollision->OnComponentEndOverlap.AddDynamic(this, &ASkeletonEnemy::OnCombatSphereEndOverlap);
+
+	LeftHandSphereCollision->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonEnemy::OnLeftHandSphereBeginOverlap);
+	RightHandSphereCollision->OnComponentBeginOverlap.AddDynamic(this, &ASkeletonEnemy::OnRightHandSphereBeginOverlap);
+	
 	LeftHandSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	LeftHandSphereCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	LeftHandSphereCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
@@ -60,15 +66,19 @@ void ASkeletonEnemy::BeginPlay()
 	}
 }
 
-void ASkeletonEnemy::PerformMeleeAttack()
+void ASkeletonEnemy::PerformMeleeAttack(FName AttackSectionName)
 {
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 
-	if (bCanAttack)
+	if (AnimInstance && bCanAttack)
 	{
+		
+
 		AnimInstance->Montage_Play(AttackMontage);
-		AnimInstance->Montage_JumpToSection(GetAttackAnimName(), AttackMontage);
+		AnimInstance->Montage_JumpToSection(AttackSectionName, AttackMontage);
 	}
+
+	bCanAttack = false;
 }
 
 FName ASkeletonEnemy::GetAttackAnimName()
@@ -88,11 +98,17 @@ FName ASkeletonEnemy::GetAttackAnimName()
 	return FName();
 }
 
+void ASkeletonEnemy::ResetCanAttack()
+{
+	bCanAttack = true;
+}
+
 void ASkeletonEnemy::OnCombatSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == nullptr) return;
 
 	auto Character = Cast<APlayerCharacter>(OtherActor);
+	
 	if (Character)
 	{
 		bInAttackRange = true;
@@ -106,6 +122,62 @@ void ASkeletonEnemy::OnCombatSphereBeginOverlap(UPrimitiveComponent* OverlappedC
 
 void ASkeletonEnemy::OnCombatSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (OtherActor == nullptr) return;
+
+	auto Character = Cast<APlayerCharacter>(OtherActor);
+	if (Character)
+	{
+		bInAttackRange = false;
+
+		if (EnemyAIController)
+		{
+			EnemyAIController->GetBlackboardComponent()->SetValueAsBool(TEXT("InAttackRange"), false);
+		}
+	}
+}
+
+void ASkeletonEnemy::OnLeftHandSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == nullptr) return;
+
+	auto PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+
+	if (PlayerCharacter)
+	{
+		UGameplayStatics::ApplyDamage(PlayerCharacter, BaseDamage, EnemyAIController, this, UDamageType::StaticClass());
+	}
+}
+
+void ASkeletonEnemy::OnRightHandSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == nullptr) return;
+
+	auto PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+
+	if (PlayerCharacter)
+	{
+		UGameplayStatics::ApplyDamage(PlayerCharacter, BaseDamage, EnemyAIController, this, UDamageType::StaticClass());
+	}
+}
+
+void ASkeletonEnemy::EnableLeftHandSphereCollision()
+{
+	LeftHandSphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void ASkeletonEnemy::DisableLeftHandSphereCollision()
+{
+	LeftHandSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ASkeletonEnemy::EnableRightHandSphereCollision()
+{
+	RightHandSphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void ASkeletonEnemy::DisableRightHandSphereCollision()
+{
+	RightHandSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ASkeletonEnemy::Tick(float DeltaTime)
@@ -118,6 +190,7 @@ float ASkeletonEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	if (Health - DamageAmount <= 0.0f)
 	{
 		Health = 0.0f;
+		Destroy();
 	}
 	else
 	{

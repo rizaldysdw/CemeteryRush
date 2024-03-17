@@ -22,7 +22,11 @@ APlayerCharacter::APlayerCharacter() :
 	bMeleeAttackPressed(false),
 	bCanAttack(true),
 	AttackCount(0),
-	BaseDamage(50.f)
+	BaseDamage(50.f),
+
+	// Health
+	MaxHealth(100.f),
+	Health(100.f)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -53,6 +57,9 @@ APlayerCharacter::APlayerCharacter() :
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Setup Health
+	Health = MaxHealth;
 
 	// Setup overlap collisions
 	CombatBoxCollision->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnCombatBoxBeginOverlap);
@@ -212,5 +219,19 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("MeleeAttack", IE_Pressed, this, & APlayerCharacter::MeleeAttackPressed);
 	PlayerInputComponent->BindAction("MeleeAttack", IE_Released, this, &APlayerCharacter::MeleeAttackReleased);
+}
+
+float APlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (Health - DamageAmount <= 0.0f)
+	{
+		Health = 0.0f;
+	}
+	else
+	{
+		Health -= DamageAmount;
+	}
+
+	return DamageAmount;
 }
 

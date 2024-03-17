@@ -38,10 +38,16 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Call this function to perform melee attack behavior
-	void PerformMeleeAttack();
+	UFUNCTION(BlueprintCallable)
+	void PerformMeleeAttack(FName AttackSectionName);
 
 	// Return FName of the attack animation in Attack Anim Montage
+	UFUNCTION(BlueprintPure)
 	FName GetAttackAnimName();
+
+	// Called to reset bCanAttack to true
+	UFUNCTION(BlueprintCallable)
+	void ResetCanAttack();
 
 	// Called when an Actor begins overlapping with Combat Sphere Collision
 	UFUNCTION()
@@ -53,6 +59,34 @@ protected:
 	UFUNCTION()
 	void OnCombatSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	// Called when an Actor begins overlapping with Left Hand Sphere Collision
+	UFUNCTION()
+	void OnLeftHandSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
+
+	// Called when an Actor begins overlapping with Right Hand Sphere Collision
+	UFUNCTION()
+	void OnRightHandSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
+
+	// Called to enable Left Hand Sphere Collision
+	UFUNCTION(BlueprintCallable)
+	void EnableLeftHandSphereCollision();
+
+	// Called to disable Left Hand Sphere Collision
+	UFUNCTION(BlueprintCallable)
+	void DisableLeftHandSphereCollision();
+
+	// Called to enable Right Hand Sphere Collision
+	UFUNCTION(BlueprintCallable)
+	void EnableRightHandSphereCollision();
+
+	// Called to disable Right Hand Sphere Collision
+	UFUNCTION(BlueprintCallable)
+	void DisableRightHandSphereCollision();
 
 public:
 	// Called every frame
