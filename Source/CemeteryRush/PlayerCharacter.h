@@ -44,6 +44,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* AttackMontage;
 
+	// Box Collision to deal damage to other Actor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	class UBoxComponent* CombatBoxCollision;
+
 	// True when Melee Attack input is pressed, false when released
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	bool bMeleeAttackPressed;
@@ -55,6 +59,10 @@ private:
 	// Integer to determine which attack animation should be played
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	int AttackCount;
+
+	// Damage to apply to other actor
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float BaseDamage;
 
 protected:
 	// Called when the game starts or when spawned
@@ -101,6 +109,19 @@ protected:
 	// Reset Attack Count integer
 	UFUNCTION(BlueprintCallable)
 	void ResetAttackCount();
+
+	// Called to enable combat collision
+	UFUNCTION(BlueprintCallable)
+	void EnableCombatCollision();
+
+	// Called to disable combat collision
+	UFUNCTION(BlueprintCallable)
+	void DisableCombatCollision();
+
+	void OnCombatBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+
+
 
 public:	
 	// Called every frame

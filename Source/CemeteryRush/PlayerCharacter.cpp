@@ -5,6 +5,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/BoxComponent.h"
+#include "Enemy.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter() :
@@ -17,7 +20,8 @@ APlayerCharacter::APlayerCharacter() :
 	// Combat
 	bMeleeAttackPressed(false),
 	bCanAttack(true),
-	AttackCount(0)
+	AttackCount(0),
+	BaseDamage(50.f)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -28,10 +32,14 @@ APlayerCharacter::APlayerCharacter() :
 	CameraBoom->SetupAttachment(RootComponent);
 
 	// Create a Follow Camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Follow Camera"));
 
 	// Attach camera to the end of CameraBoom
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+
+	// Create Combat Box Collision
+	CombatBoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("Combat Box Collision"));
+	CombatBoxCollision->SetupAttachment(GetMesh(), FName("Sword_Mid"));
 
 	// Rotation rate of the character
 	GetCharacterMovement()->RotationRate = FRotator(0, 540.0f, 0);
@@ -44,7 +52,10 @@ APlayerCharacter::APlayerCharacter() :
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	// Setup overlap collisions
+	CombatBoxCollision->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnCombatBoxBeginOverlap);
+	CombatBoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void APlayerCharacter::MoveForward(float Value)
@@ -149,6 +160,26 @@ FName APlayerCharacter::GetAttackAnimName()
 void APlayerCharacter::ResetAttackCount()
 {
 	AttackCount = 0;
+}
+
+void APlayerCharacter::EnableCombatCollision()
+{
+	CombatBoxCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void APlayerCharacter::DisableCombatCollision()
+{
+	CombatBoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void APlayerCharacter::OnCombatBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	auto Enemy = Cast<AEnemy>(OtherActor);
+
+	if (Enemy)
+	{
+		UGameplayStatics::ApplyDamage(Enemy, BaseDamage, GetController(), this, UDamageType::StaticClass());
+	}
 }
 
 // Called every frame
