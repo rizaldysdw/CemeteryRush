@@ -12,7 +12,12 @@ APlayerCharacter::APlayerCharacter() :
 	BaseTurnRate(60.f),
 	BaseLookUpRate(60.f),
 	MouseTurnRate(1.f),
-	MouseLookUpRate(1.f)
+	MouseLookUpRate(1.f),
+	
+	// Combat
+	bMeleeAttackPressed(false),
+	bCanAttack(true),
+	AttackCount(0)
 {
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -90,6 +95,62 @@ void APlayerCharacter::LookUpRate(float Rate)
 	AddControllerPitchInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
+void APlayerCharacter::MeleeAttackPressed()
+{
+	bMeleeAttackPressed = true;
+	PerformMeleeAttack();
+}
+
+void APlayerCharacter::MeleeAttackReleased()
+{
+	bMeleeAttackPressed = false;
+}
+
+void APlayerCharacter::PerformMeleeAttack()
+{
+	if (!bCanAttack) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+	if (bMeleeAttackPressed)
+	{
+		bCanAttack = false;
+		AttackCount++;
+
+		AnimInstance->Montage_Play(AttackMontage);
+		AnimInstance->Montage_JumpToSection(GetAttackAnimName(), AttackMontage);
+	}
+}
+
+void APlayerCharacter::ResetCanAttack()
+{
+	bCanAttack = true;
+}
+
+FName APlayerCharacter::GetAttackAnimName()
+{
+	switch (AttackCount)
+	{
+	case 1:
+		return FName("AttackA");
+		break;
+
+	case 2:
+		return FName("AttackB");
+		break;
+
+	case 3:
+		return FName("AttackC");
+	}
+
+	return FName();
+}
+
+void APlayerCharacter::ResetAttackCount()
+{
+	AttackCount = 0;
+}
+
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
@@ -113,5 +174,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+	PlayerInputComponent->BindAction("MeleeAttack", IE_Pressed, this, & APlayerCharacter::MeleeAttackPressed);
+	PlayerInputComponent->BindAction("MeleeAttack", IE_Released, this, &APlayerCharacter::MeleeAttackReleased);
 }
 

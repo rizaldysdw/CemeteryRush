@@ -40,6 +40,22 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true", ClampMin = "0.0", ClampMax = "1.0", UIMin = "0.0", UIMax = "1.0"))
 	float MouseLookUpRate;
 
+	// Anim Montage containing attack animations
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* AttackMontage;
+
+	// True when Melee Attack input is pressed, false when released
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	bool bMeleeAttackPressed;
+
+	// True when Player can perform attack
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	bool bCanAttack;
+
+	// Integer to determine which attack animation should be played
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	int AttackCount;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -65,6 +81,26 @@ protected:
 	/* Called via input to look up/down at a given rate.
 	@param Rate - This is a normalized rate, i.e. 1.0 means 100 % of desired rate */
 	void LookUpRate(float Rate);
+
+	// Set bMeleeAttack to true
+	void MeleeAttackPressed();
+
+	// Set bMeleeAttack to false
+	void MeleeAttackReleased();
+
+	// Call this function to perform melee attack behavior
+	void PerformMeleeAttack();
+
+	// Call this function in AnimBlueprint Anim Notify
+	UFUNCTION(BlueprintCallable)
+	void ResetCanAttack();
+
+	// Return FName of the attack animation in Attack Anim Montage
+	FName GetAttackAnimName();
+
+	// Reset Attack Count integer
+	UFUNCTION(BlueprintCallable)
+	void ResetAttackCount();
 
 public:	
 	// Called every frame
