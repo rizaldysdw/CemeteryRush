@@ -25,6 +25,7 @@ ASkeletonEnemy::ASkeletonEnemy()
 	MaxHealth = 150.f;
 	BaseDamage = 10.f;
 	bCanAttack = true;
+	bInAttackRange = false;
 }
 
 void ASkeletonEnemy::BeginPlay()
@@ -85,6 +86,26 @@ FName ASkeletonEnemy::GetAttackAnimName()
 	}
 
 	return FName();
+}
+
+void ASkeletonEnemy::OnCombatSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == nullptr) return;
+
+	auto Character = Cast<APlayerCharacter>(OtherActor);
+	if (Character)
+	{
+		bInAttackRange = true;
+
+		if (EnemyAIController)
+		{
+			EnemyAIController->GetBlackboardComponent()->SetValueAsBool(TEXT("InAttackRange"), true);
+		}
+	}
+}
+
+void ASkeletonEnemy::OnCombatSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
 }
 
 void ASkeletonEnemy::Tick(float DeltaTime)

@@ -28,8 +28,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float BaseDamage;
 
+	// True when this Pawn can perform attack to other actor
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	bool bCanAttack;
+
+	// True when other actor is in Attack Range of this Pawn
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	bool bInAttackRange;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Artificial Intelligence", meta = (AllowPrivateAccess = "true"))
 	class AEnemyAIController* EnemyAIController;
