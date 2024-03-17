@@ -7,6 +7,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "PlayerCharacter.h"
+#include "CemeteryRushGameModeBase.h"
 
 ASkeletonEnemy::ASkeletonEnemy()
 {
@@ -103,6 +104,14 @@ void ASkeletonEnemy::ResetCanAttack()
 	bCanAttack = true;
 }
 
+void ASkeletonEnemy::Die()
+{
+	auto GameMode = Cast<ACemeteryRushGameModeBase>(UGameplayStatics::GetGameMode);
+	GameMode->IncrementKilledEnemy();
+	
+	Destroy();
+}
+
 void ASkeletonEnemy::OnCombatSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor == nullptr) return;
@@ -190,7 +199,7 @@ float ASkeletonEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	if (Health - DamageAmount <= 0.0f)
 	{
 		Health = 0.0f;
-		Destroy();
+		Die();
 	}
 	else
 	{

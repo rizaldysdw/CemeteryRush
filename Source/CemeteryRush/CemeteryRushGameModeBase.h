@@ -14,4 +14,14 @@ class CEMETERYRUSH_API ACemeteryRushGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	ACemeteryRushGameModeBase();
+
+private:
+	// Number of enemies killed by the player
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player Progress", meta = (AllowPrivateAccess = "true"))
+	int32 KilledEnemy;
+
+public:
+	void IncrementKilledEnemy();
 };

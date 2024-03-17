@@ -49,6 +49,10 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ResetCanAttack();
 
+	// Called when this Pawn die
+	UFUNCTION(BlueprintCallable)
+	void Die();
+
 	// Called when an Actor begins overlapping with Combat Sphere Collision
 	UFUNCTION()
 	void OnCombatSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,

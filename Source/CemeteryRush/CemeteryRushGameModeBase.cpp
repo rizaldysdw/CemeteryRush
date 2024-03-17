@@ -3,3 +3,11 @@
 
 #include "CemeteryRushGameModeBase.h"
 
+ACemeteryRushGameModeBase::ACemeteryRushGameModeBase()
+{
+}
+
+void ACemeteryRushGameModeBase::IncrementKilledEnemy()
+{
+	KilledEnemy++;
+}
