@@ -25,11 +25,18 @@ protected:
 	float Health;
 
 	// Base damage of this Pawn
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	float BaseDamage;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	bool bCanAttack;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Artificial Intelligence", meta = (AllowPrivateAccess = "true"))
+	class AEnemyAIController* EnemyAIController;
+
+	// Behavior Tree for the AI Enemy
+	UPROPERTY(EditAnywhere, Category = "Artificial Intelligence", meta = (AllowPrivateAccess = "true"))
+	class UBehaviorTree* BehaviorTree;
 
 protected:
 	// Called when the game starts or when spawned
@@ -43,4 +50,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+
+public:
+	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
 };

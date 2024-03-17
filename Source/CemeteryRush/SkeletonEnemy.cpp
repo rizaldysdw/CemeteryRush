@@ -3,6 +3,10 @@
 
 #include "SkeletonEnemy.h"
 #include "Components/SphereComponent.h"
+#include "EnemyAIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "PlayerCharacter.h"
 
 ASkeletonEnemy::ASkeletonEnemy()
 {
@@ -29,6 +33,30 @@ void ASkeletonEnemy::BeginPlay()
 
 	// Set maximum health as current health
 	Health = MaxHealth;
+
+	// Setup collisions
+	LeftHandSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	LeftHandSphereCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	LeftHandSphereCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	LeftHandSphereCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	
+	RightHandSphereCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	RightHandSphereCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	RightHandSphereCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	RightHandSphereCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+	// Get AI Controller
+	EnemyAIController = Cast<AEnemyAIController>(GetController());
+
+	if (EnemyAIController)
+	{
+		auto PlayerClass = UGameplayStatics::GetActorOfClass(GetWorld(), APlayerCharacter::StaticClass());
+		auto Player = Cast<APlayerCharacter>(PlayerClass);
+
+		EnemyAIController->GetBlackboardComponent()->SetValueAsObject("Player", Player);
+
+		EnemyAIController->RunBehaviorTree(BehaviorTree);
+	}
 }
 
 void ASkeletonEnemy::PerformMeleeAttack()
