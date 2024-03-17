@@ -8,6 +8,7 @@
 #include "Components/BoxComponent.h"
 #include "Enemy.h"
 #include "Kismet/GameplayStatics.h"
+#include "SkeletonEnemy.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter() :
@@ -56,6 +57,9 @@ void APlayerCharacter::BeginPlay()
 	// Setup overlap collisions
 	CombatBoxCollision->OnComponentBeginOverlap.AddDynamic(this, &APlayerCharacter::OnCombatBoxBeginOverlap);
 	CombatBoxCollision->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CombatBoxCollision->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	CombatBoxCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	CombatBoxCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 }
 
 void APlayerCharacter::MoveForward(float Value)
@@ -174,7 +178,7 @@ void APlayerCharacter::DisableCombatCollision()
 
 void APlayerCharacter::OnCombatBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	auto Enemy = Cast<AEnemy>(OtherActor);
+	auto Enemy = Cast<ASkeletonEnemy>(OtherActor);
 
 	if (Enemy)
 	{
