@@ -106,7 +106,7 @@ void ASkeletonEnemy::ResetCanAttack()
 
 void ASkeletonEnemy::Die()
 {
-	auto GameMode = Cast<ACemeteryRushGameModeBase>(UGameplayStatics::GetGameMode);
+	auto GameMode = Cast<ACemeteryRushGameModeBase>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameMode->IncrementKilledEnemy();
 	
 	Destroy();
