@@ -30,8 +30,20 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	USphereComponent* RightHandSphereCollision;
 
+	/*If true, Character Movement will be auto activated at BeginPlay.
+	If false, Character Movement activation should be set to true manually */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	bool bAutoActive;
+
+	// Target killed enemies to allow this character to move
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	int32 TargetKilledEnemies;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Animation", meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* AttackMontage;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Game Mode Base", meta = (AllowPrivateAccess = "true"))
+	class ACemeteryRushGameModeBase* GameModeBase;
 
 protected:
 	// Called when the game starts or when spawned
@@ -52,6 +64,12 @@ protected:
 	// Called when this Pawn die
 	UFUNCTION(BlueprintCallable)
 	void Die();
+
+	// Called in Begin Play to set GameModeBase variable
+	void SetGameModeBase();
+
+	// Called in Tick to activate Character Movement Component based on certain conditions
+	void ActivateCharacterMovementAtRuntime();
 
 	// Called when an Actor begins overlapping with Combat Sphere Collision
 	UFUNCTION()
@@ -98,4 +116,7 @@ public:
 
 	// Called to receive damage
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	
+	UFUNCTION(BlueprintCallable)
+	void ActivateCharacterMovement();
 };

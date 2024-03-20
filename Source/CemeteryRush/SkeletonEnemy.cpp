@@ -8,6 +8,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "PlayerCharacter.h"
 #include "CemeteryRushGameModeBase.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "CemeteryRushGameModeBase.h"
 
 ASkeletonEnemy::ASkeletonEnemy()
 {
@@ -27,11 +29,16 @@ ASkeletonEnemy::ASkeletonEnemy()
 	BaseDamage = 10.f;
 	bCanAttack = true;
 	bInAttackRange = false;
+	bAutoActive = false;
+	TargetKilledEnemies = 0;
 }
 
 void ASkeletonEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Set Game Mode Base
+	SetGameModeBase();
 
 	// Set maximum health as current health
 	Health = MaxHealth;
@@ -64,6 +71,15 @@ void ASkeletonEnemy::BeginPlay()
 		EnemyAIController->GetBlackboardComponent()->SetValueAsObject("Player", Player);
 
 		EnemyAIController->RunBehaviorTree(BehaviorTree);
+	}
+
+	if (bAutoActive == false)
+	{
+		GetCharacterMovement()->SetActive(false);
+	}
+	else
+	{
+		GetCharacterMovement()->SetActive(true);
 	}
 }
 
@@ -110,6 +126,30 @@ void ASkeletonEnemy::Die()
 	GameMode->IncrementKilledEnemy();
 	
 	Destroy();
+}
+
+void ASkeletonEnemy::SetGameModeBase()
+{
+	if (GameModeBase == nullptr)
+	{
+		AGameModeBase* CurrentGameMode = UGameplayStatics::GetGameMode(GetWorld());
+		GameModeBase = Cast<ACemeteryRushGameModeBase>(CurrentGameMode);
+	}
+	else
+	{
+		return;
+	}
+}
+
+void ASkeletonEnemy::ActivateCharacterMovementAtRuntime()
+{
+	if (bAutoActive == false)
+	{
+		if (TargetKilledEnemies == GameModeBase->GetKilledEnemy())
+		{
+			GetCharacterMovement()->SetActive(true);
+		}
+	}
 }
 
 void ASkeletonEnemy::OnCombatSphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -192,6 +232,8 @@ void ASkeletonEnemy::DisableRightHandSphereCollision()
 void ASkeletonEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	ActivateCharacterMovementAtRuntime();
 }
 
 float ASkeletonEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -207,4 +249,9 @@ float ASkeletonEnemy::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	}
 
 	return DamageAmount;
+}
+
+void ASkeletonEnemy::ActivateCharacterMovement()
+{
+	GetCharacterMovement()->SetActive(true);
 }
