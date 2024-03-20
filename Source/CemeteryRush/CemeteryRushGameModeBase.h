@@ -24,4 +24,7 @@ private:
 
 public:
 	void IncrementKilledEnemy();
+
+public:
+	FORCEINLINE int32 GetKilledEnemy() const { return KilledEnemy; }
 };
